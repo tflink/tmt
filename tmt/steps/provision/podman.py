@@ -80,6 +80,14 @@ class PodmanGuestData(tmt.steps.provision.GuestData):
              """,
         normalize=tmt.utils.normalize_int)
 
+    privileged: bool = field(
+        default=False,
+        option='--privileged',
+        metavar='USE_PRIVILEGED',
+        is_flag=True,
+        help='Run the container with extended privileges.')
+
+
 
 @dataclasses.dataclass
 class ProvisionPodmanData(PodmanGuestData, tmt.steps.provision.ProvisionStepData):
@@ -99,6 +107,7 @@ class GuestContainer(tmt.Guest):
     pull_attempts: int
     pull_interval: int
     stop_time: int
+    privileged: bool
     logger: tmt.log.Logger
 
     @property
@@ -206,6 +215,9 @@ class GuestContainer(tmt.Guest):
         additional_args.extend(workaround)
 
         additional_args.extend(self._setup_network())
+
+        if self.privileged:
+            additional_args.append('--privileged')
 
         # Run the container
         self.debug(f"Start container '{self.image}'.")
